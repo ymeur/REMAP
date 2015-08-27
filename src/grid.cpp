@@ -1,4 +1,4 @@
-#include "grid.h"
+#include "grid.hpp"
 
 Coord readPole(std::istream &is)
 {

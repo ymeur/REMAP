@@ -4,12 +4,12 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
-#include "node.h"
-#include "elt.h"
-#include "grid.h"
-#include "inside.h"
-#include "polyg.h"
-#include "intersect.h"
+#include "node.hpp"
+#include "elt.hpp"
+#include "grid.hpp"
+#include "inside.hpp"
+#include "polyg.hpp"
+#include "intersect.hpp"
 #include "intersection_ym.hpp"
 
 using namespace std;

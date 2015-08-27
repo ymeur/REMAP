@@ -1,9 +1,9 @@
 #include <mpi.h>
 #include <netcdf.h>
-#include "errhandle.h"
-#include "libmapper.h"
+#include "errhandle.hpp"
+#include "libmapper.hpp"
 
-#include "node.h"
+#include "node.hpp"
 
 int ncread(double *lon, double *lat, int nElt, const char* filename)
 {

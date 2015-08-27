@@ -1,7 +1,7 @@
 #include "mpi_routing.hpp"
 #include <mpi.h>
-#include "node.h"
-#include "elt.h"
+#include "node.hpp"
+#include "elt.hpp"
 #include "timer.hpp"
 #include <iostream>
 

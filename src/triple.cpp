@@ -1,4 +1,4 @@
-#include "triple.h"
+#include "triple.hpp"
 
 extern const Coord ORIGIN(0.0, 0.0, 0.0);
 

@@ -1,14 +1,14 @@
 #include <cassert>
-#include "node.h"
+#include "node.hpp"
 #include "timer.hpp"
 #include "circle.hpp"
-#include "meshutil.h"
-#include "polyg.h"
-#include "grid.h"
-#include "intersect.h"
-#include "errhandle.h"
+#include "meshutil.hpp"
+#include "polyg.hpp"
+#include "grid.hpp"
+#include "intersect.hpp"
+#include "errhandle.hpp"
 #include "mpi_routing.hpp"
-#include "misc.h"
+#include "misc.hpp"
 
 #include "parallel_tree.hpp"
 

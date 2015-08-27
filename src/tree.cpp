@@ -1,7 +1,7 @@
 #include <cassert>
 #include "tree.hpp"
-#include "node.h"
-#include "elt.h"
+#include "node.hpp"
+#include "elt.hpp"
 #include <iostream>
 #include <mpi.h>
 #include <stdlib.h>     /* srand, rand */

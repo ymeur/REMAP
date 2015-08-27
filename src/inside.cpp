@@ -2,10 +2,10 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
-#include "elt.h"
-#include "polyg.h"
+#include "elt.hpp"
+#include "polyg.hpp"
 
-#include "inside.h"
+#include "inside.hpp"
 
 static const double SNAP = 1e-11;
 

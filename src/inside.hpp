@@ -1,4 +1,4 @@
-#include "elt.h"
+#include "elt.hpp"
 
 void ptsec(Elt *ea, Elt *eb, Ipt *ipt);
 void recense(Elt *ea, Elt *eb, Ipt *ipt, std::list<Sgm> &iscot, int pass);

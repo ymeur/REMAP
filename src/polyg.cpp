@@ -2,10 +2,10 @@
 
 #include <cassert>
 #include <iostream>
-#include "elt.h"
-#include "errhandle.h"
+#include "elt.hpp"
+#include "errhandle.hpp"
 
-#include "polyg.h"
+#include "polyg.hpp"
 
 using namespace std;
 

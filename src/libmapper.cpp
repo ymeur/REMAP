@@ -6,13 +6,13 @@
 #include <fstream>
 #endif
 
-#include "node.h"
-#include "grid.h"
+#include "node.hpp"
+#include "grid.hpp"
 #include "circle.hpp" // cptRadius
-#include "elt.h"
-#include "meshutil.h" // cptArea
+#include "elt.hpp"
+#include "meshutil.hpp" // cptArea
 #include "mapper.hpp"
-#include "cputime.h" // cputime
+#include "cputime.hpp" // cputime
 
 
 /* mapper is a ponter to a global class instance whoes members are allocated in the first step (finding the sizes of the weight arrays) 

@@ -4,13 +4,13 @@
 #include <iostream>
 #include <cassert>
 #include "tree.hpp"
-#include "elt.h"
-#include "intersect.h"
+#include "elt.hpp"
+#include "intersect.hpp"
 #include <vector>
 #include <set>
 #include <algorithm>
 
-#include "node.h"
+#include "node.hpp"
 
 #define UPDATE_EVERY 1
 

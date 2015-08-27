@@ -1,14 +1,14 @@
 #include "mpi.h" // some compiler fails if mpi.h is not the first header to be included
 #include <map>
-#include "cputime.h"       /* time */
-#include "meshutil.h"
-#include "polyg.h"
+#include "cputime.hpp"       /* time */
+#include "meshutil.hpp"
+#include "polyg.hpp"
 #include "circle.hpp"
-#include "intersect.h"
+#include "intersect.hpp"
 #include "intersection_ym.hpp"
-#include "errhandle.h"
+#include "errhandle.hpp"
 #include "mpi_routing.hpp"
-#include "grid.h"
+#include "grid.hpp"
 
 #include "mapper.hpp"
 

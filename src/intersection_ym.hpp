@@ -2,7 +2,7 @@
 #define __INTERSECTION_YM_HPP__
 
 #include <vector>
-#include "elt.h"
+#include "elt.hpp"
  
 void intersect_ym(Elt *a, Elt *b) ;
 void createGreatCirclePolygon(const Elt& element, const Coord& pole, vector<Coord>& coordinates) ;

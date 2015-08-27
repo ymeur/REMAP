@@ -1,4 +1,4 @@
-#include "elt.h"
+#include "elt.hpp"
 
 
 Coord barycentre(const Coord *x, int n);

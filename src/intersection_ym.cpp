@@ -1,10 +1,9 @@
 #include "intersection_ym.hpp"
-#include "elt.h"
-#include "gpc.h"
+#include "elt.hpp"
 #include "clipper.hpp"
-#include "grid.h"
-#include "triple.h"
-#include "polyg.h"
+#include "grid.hpp"
+#include "triple.hpp"
+#include "polyg.hpp"
 #include <vector>
 #include "stdlib.h"
 #include <limits>

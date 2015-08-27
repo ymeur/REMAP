@@ -1,6 +1,6 @@
 #include <algorithm>
-#include "node.h"
-#include "elt.h"
+#include "node.hpp"
+#include "elt.hpp"
 
 #include "circle.hpp"
 

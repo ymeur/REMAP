@@ -4,7 +4,7 @@
 #include <mpi.h>
 #include <vector>
 #include <cassert>
-#include "misc.h"
+#include "misc.hpp"
 
 class CCascadeLevel
 {

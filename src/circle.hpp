@@ -1,7 +1,7 @@
 #ifndef __CIRCLE_HPP__
 #define __CIRCLE_HPP__
-#include "elt.h"
-#include "node.h"
+#include "elt.hpp"
+#include "node.hpp"
 
 double cptRadius(Elt elt);
 

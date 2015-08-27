@@ -1,6 +1,6 @@
 #include <list>
-#include "elt.h"
-#include "polyg.h"
+#include "elt.hpp"
+#include "polyg.hpp"
 
 using namespace std;
 

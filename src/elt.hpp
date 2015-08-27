@@ -1,7 +1,7 @@
 #ifndef __ELT_H__
 #define __ELT_H__
 #include <list>
-#include "triple.h"
+#include "triple.hpp"
 
 #define NMAX 10 /**< maximum number of vertices for polygons */
 

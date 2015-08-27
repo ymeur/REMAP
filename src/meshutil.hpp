@@ -1,5 +1,5 @@
 #include <vector>
-#include "elt.h"
+#include "elt.hpp"
 
 void cptEltGeom(Elt& elt, const Coord &pole);
 void cptAllEltsGeom(Elt *elt, int N, const Coord &pole);

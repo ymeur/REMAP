@@ -8,7 +8,7 @@
 #include <map>
 #include <iostream>
 
-#include "triple.h"
+#include "triple.hpp"
 
 struct Circle
 {
