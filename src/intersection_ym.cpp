@@ -1,26 +1,32 @@
 #include "intersection_ym.hpp"
 #include "elt.h"
 #include "gpc.h"
+#include "clipper.hpp"
 #include "grid.h"
 #include "triple.h"
 #include "polyg.h"
 #include <vector>
 #include "stdlib.h"
+#include <limits>
 
 #define epsilon 1e-3  // epsilon distance ratio over side lenght for approximate small circle by great circle
 #define fusion_vertex 1e-15 
 
 using namespace std;
+using namespace ClipperLib ;
 
 void intersect_ym(Elt *a, Elt *b)
 {
  
+// transform small circle into piece of great circle if necessary
+  
   vector<Coord> srcPolygon ;
   createGreatCirclePolygon(*b, srcGrid.pole, srcPolygon) ;
   vector<Coord> dstPolygon ;
   createGreatCirclePolygon(*a, tgtGrid.pole, dstPolygon) ;
 
-
+// compute coordinates of the polygons into the gnomonique plane tangent to barycenter C of dst polygon
+// transform system coordinate : Z axis along OC
   int na=dstPolygon.size() ;
   Coord *a_gno   = new Coord[na];
   int nb=srcPolygon.size() ;
@@ -29,6 +35,8 @@ void intersect_ym(Elt *a, Elt *b)
   Coord OC=barycentre(a->vertex,a->n) ;
   Coord Oz=OC ;
   Coord Ox=crossprod(Coord(0,0,1),Oz) ;
+// choose Ox not too small to avoid rounding error
+  if (norm(Ox)< 0.1) Ox=crossprod(Coord(0,1,0),Oz) ;  
   Ox=Ox*(1./norm(Ox)) ;
   Coord Oy=crossprod(Oz,Ox) ;
   double cos_alpha;
@@ -38,7 +46,7 @@ void intersect_ym(Elt *a, Elt *b)
     cos_alpha=scalarprod(OC,dstPolygon[n]) ;
     a_gno[n].x=scalarprod(dstPolygon[n],Ox)/cos_alpha ;
     a_gno[n].y=scalarprod(dstPolygon[n],Oy)/cos_alpha ;
-    a_gno[n].z=scalarprod(dstPolygon[n],Oz)/cos_alpha ;
+    a_gno[n].z=scalarprod(dstPolygon[n],Oz)/cos_alpha ; // must be equal to 1
   }
   
   for(int n=0; n<nb;n++)
@@ -46,92 +54,99 @@ void intersect_ym(Elt *a, Elt *b)
     cos_alpha=scalarprod(OC,srcPolygon[n]) ;
     b_gno[n].x=scalarprod(srcPolygon[n],Ox)/cos_alpha ;
     b_gno[n].y=scalarprod(srcPolygon[n],Oy)/cos_alpha ;
-    b_gno[n].z=scalarprod(srcPolygon[n],Oz)/cos_alpha ;
-//    cout <<"polygonPoints.InsertPoint("<<n+na<<", "<<b_gno[n].x<<", "<<b_gno[n].y<<", "<<b_gno[n].z<<")"<<endl ; 
-  }
-//  cout<<"**********************************************"<<endl ;
-  
-  gpc_polygon src ;
-  src.num_contours=1 ;
-  src.hole = 0 ;
-  src.contour = (gpc_vertex_list*) malloc(sizeof(gpc_vertex_list)) ;
-  src.contour->num_vertices = na ;
-  src.contour->vertex = (gpc_vertex*) malloc(sizeof(gpc_vertex)*na) ;
-  for(int n=0; n<na;n++) 
-  {
-    src.contour[0].vertex[n].x=a_gno[n].x ;
-    src.contour[0].vertex[n].y=a_gno[n].y ;
+    b_gno[n].z=scalarprod(srcPolygon[n],Oz)/cos_alpha ; // must be equal to 1
   }
   
-  gpc_polygon trg ;
-  trg.num_contours=1 ;
-  trg.hole = 0 ;
-  trg.contour = (gpc_vertex_list*) malloc(sizeof(gpc_vertex_list)) ;
-  trg.contour->num_vertices = nb ;
-  trg.contour->vertex = (gpc_vertex*) malloc(sizeof(gpc_vertex)*nb) ;
-  for(int n=0; n<nb;n++) 
+
+
+// Compute intersections using clipper
+// 1) Compute offset and scale factor to rescale polygon
+
+  double xmin, xmax, ymin,ymax ;
+  xmin=xmax=a_gno[0].x ;
+  ymin=ymax=a_gno[0].y ;
+  
+  for(int n=0; n<na;n++)
   {
-    trg.contour[0].vertex[n].x=b_gno[n].x ;
-    trg.contour[0].vertex[n].y=b_gno[n].y ;
+    if (a_gno[n].x< xmin) xmin=a_gno[n].x ;
+    else if (a_gno[n].x > xmax) xmax=a_gno[n].x ;
+
+    if (a_gno[n].y< ymin) ymin=a_gno[n].y ; 
+    else if (a_gno[n].y > ymax) ymax=a_gno[n].y ;
   }
 
-  gpc_polygon intersection ;
-  gpc_polygon_clip( GPC_INT,&src,&trg,&intersection) ;
-  
-//  cout<<"**********************************************"<<endl ;
-//  cout<<"Intersection"<<endl ;
-//  cout<<intersection.num_contours<<endl ;
-  
-//  for(int nc=0; nc<intersection.num_contours;nc++)
-//   for(int n=0; n < intersection.contour[nc].num_vertices; n++) 
-//   {
-//    cout<<intersection.contour[nc].vertex[n].x << ", "<< intersection.contour[nc].vertex[n].y <<endl ;
-//   }
-//  cout<<"**********************************************"<<endl ;
-
-  if (intersection.num_contours==1)
+  for(int n=0; n<nb;n++)
   {
-    Coord* intersectPolygon=new Coord[intersection.contour[0].num_vertices] ; 
-    for(int n=0; n < intersection.contour[0].num_vertices; n++) 
+    if (b_gno[n].x< xmin) xmin=b_gno[n].x ;
+    else if (b_gno[n].x > xmax) xmax=b_gno[n].x ;
+
+    if (b_gno[n].y< ymin) ymin=b_gno[n].y ;
+    else if (b_gno[n].y > ymax) ymax=b_gno[n].y ;
+  }
+  
+  double xoffset=(xmin+xmax)*0.5 ;
+  double yoffset=(ymin+ymax)*0.5 ;
+  double xscale= 0.5*hiRange/(xmax-xoffset) ; 
+  double yscale= 0.5*hiRange/(ymax-yoffset) ;
+
+// 2) Compute intersection with clipper
+//    clipper use only long integer value for vertex => offset and rescale
+
+  Paths src(1), dst(1), intersection;  
+
+  for(int n=0; n<na;n++)
+     src[0]<<IntPoint((a_gno[n].x-xoffset)*xscale,(a_gno[n].y-yoffset)*yscale) ;
+     
+  for(int n=0; n<nb;n++)
+     dst[0]<<IntPoint((b_gno[n].x-xoffset)*xscale,(b_gno[n].y-yoffset)*yscale) ;
+
+  Clipper clip ;
+  clip.AddPaths(src, ptSubject, true);
+  clip.AddPaths(dst, ptClip, true);
+  clip.Execute(ctIntersection, intersection, pftNonZero, pftNonZero);
+       
+
+  if (intersection.size()==1)
+  {
+// go back into real coordinate on the sphere
+    Coord* intersectPolygon=new Coord[intersection[0].size()] ; 
+    for(int n=0; n < intersection[0].size(); n++) 
     {
-      intersectPolygon[n]=Ox*intersection.contour[0].vertex[n].x+Oy*intersection.contour[0].vertex[n].y+Oz ;
+      double x=intersection[0][n].X/xscale+xoffset ;
+      double y=intersection[0][n].Y/yscale+yoffset ;
+      
+      intersectPolygon[n]=Ox*x+Oy*y+Oz ;
       intersectPolygon[n]=intersectPolygon[n]*(1./norm(intersectPolygon[n])) ;
-//      cout <<"polygonPoints.InsertPoint("<<n<<", "<<intersectPolygon[n].x<<", "<<intersectPolygon[n].y<<", "<<intersectPolygon[n].z<<")"<<endl ;
     }
 
 // remove redondants vertex
     int nv=0 ;
-    for(int n=0; n < intersection.contour[0].num_vertices; n++) 
+    for(int n=0; n < intersection[0].size(); n++) 
     {
-		  if (norm(intersectPolygon[n]-intersectPolygon[(n+1)%intersection.contour[0].num_vertices])>fusion_vertex)
-		  {
+      if (norm(intersectPolygon[n]-intersectPolygon[(n+1)%intersection[0].size()])>fusion_vertex)
+      {
         intersectPolygon[nv]=intersectPolygon[n] ;
         nv++ ;
       }
     }
-//    cout<<"**********************************************"<<endl ;
-//    cout << "number of vertex "<<nv<<endl ;
-    
-//    if (nv<=2) cout<<"Interesection polygon area "<<0<<endl ; 
-//    else cout<<"Interesection polygon area : "<<polygonarea(intersectPolygon,intersection.contour[0].num_vertices)<<endl ; 
-//    cout<<"**********************************************"<<endl ;
+
     
     if (nv>2) 
     {
-   		Polyg *is = new Polyg;
-  		is->x = exact_barycentre(intersectPolygon,nv);
-  		is->area = polygonarea(intersectPolygon,nv) ;
-  		is->id = b->id; /* intersection holds id of corresponding source element (see Elt class definition for details about id) */
-  		is->src_id = b->src_id;
-  		is->n = nv;
-  		(a->is).push_back(is);
-  		(b->is).push_back(is);
+//     assign intersection to source and destination polygons
+       Polyg *is = new Polyg;
+       is->x = exact_barycentre(intersectPolygon,nv);
+       is->area = polygonarea(intersectPolygon,nv) ; ;
+       is->id = b->id; /* intersection holds id of corresponding source element (see Elt class definition for details about id) */
+       is->src_id = b->src_id;
+       is->n = nv;
+       (a->is).push_back(is);
+       (b->is).push_back(is);
+       
     }
     delete[] intersectPolygon ;
   }
-  gpc_free_polygon(&src);
-  gpc_free_polygon(&trg);  
-  gpc_free_polygon(&intersection);  
+
   delete[] a_gno ;
   delete[] b_gno ;
 }    
