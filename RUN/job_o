@@ -1,0 +1,54 @@
+#!/bin/bash
+##################
+## CURIE   CEA ##
+##################
+#MSUB -r remap       # nom de la requete
+#MSUB -o remap.out   # nom du fichier de sortie
+#MSUB -e remap.err
+#MSUB -n 256        # reservation des processeurs pour le job
+##MSUB -c 1           # reservation des processeurs pour le job
+#MSUB -x             # exclusif
+#MSUB -T 180           # Limite temps (en secondes)
+#MSUB -p gen7357
+#MSUB -Q test                # QoS test
+#MSUB -q standard            # Choosing standard nodes
+#MSUB -X            # X11 forwarding
+
+
+cd $BRIDGE_MSUB_PWD 
+
+ulimit -a
+ulimit -aH
+8
+module load mpiprofile/bullxmpi/performance
+module load ddt
+
+mpirun hostname | sort | uniq > hosts.tmp
+cat hosts.tmp
+i=0
+rm -rf hosts
+for nodes in `cat hosts.tmp`
+  do
+  host[$i]=$nodes
+     echo "${host[$i]}" >> hosts
+  i=$((i+1))
+done
+rm -rf rankfile.txt
+
+rank=0
+i=0
+for nodes in `cat hosts.tmp`
+  do
+
+  for j in `seq 0 63`;
+  do
+    echo "rank $rank=${host[$i]} slot=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15" >> rankfile.txt
+    rank=$((rank+1))
+  done    
+  i=$((i+1))
+
+done
+
+rm -rf hosts.tmp
+
+mpirun -hostfile hosts -rankfile rankfile.txt -np 1024 /bin/bash -c '../test &> remap.out.$OMPI_COMM_WORLD_RANK'
