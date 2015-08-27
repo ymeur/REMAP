@@ -3,6 +3,8 @@
 #include <iostream>
 #include "triple.hpp"
 
+namespace sphereRemap {
+
 struct CGrid
 {
 	Coord pole;
@@ -13,5 +15,7 @@ Coord readPole(std::istream&);
 
 extern CGrid srcGrid;
 extern CGrid tgtGrid;
+
+}
 
 #endif

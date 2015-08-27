@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
+namespace sphereRemap {
+
 static inline void error_exit(const std::string& msg)
 {
 	std::cerr << "Error: " << msg << std::endl;
@@ -16,4 +18,5 @@ static inline void exit_on_failure(int status, const std::string& msg)
 	if (status) error_exit(msg);
 }
 
+}
 #endif

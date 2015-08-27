@@ -4,6 +4,8 @@
 #include <map>
 #include <iostream>
 
+namespace sphereRemap {
+
 using namespace std;
 
 map<string,CTimer*> CTimer::allTimer;
@@ -56,4 +58,5 @@ CTimer& CTimer::get(const string name)
 	it=allTimer.find(name);
 	if (it==allTimer.end()) it=allTimer.insert(pair<string,CTimer*>(name,new CTimer(name))).first;
 	return *(it->second);
+}
 }

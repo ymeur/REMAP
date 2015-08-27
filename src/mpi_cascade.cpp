@@ -1,6 +1,8 @@
 #include "mpi_cascade.hpp"
 #include <iostream>
 
+namespace sphereRemap {
+
 CMPICascade::CMPICascade(int nodes_per_level, MPI_Comm comm)
 {
 	int remaining_levels;
@@ -18,4 +20,6 @@ CMPICascade::CMPICascade(int nodes_per_level, MPI_Comm comm)
 		l++;
 	} while (--remaining_levels);
 	num_levels = l;
+}
+
 }

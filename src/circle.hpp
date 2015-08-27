@@ -3,6 +3,8 @@
 #include "elt.hpp"
 #include "node.hpp"
 
+namespace sphereRemap {
+  
 double cptRadius(Elt elt);
 
 void setCircleAndLink(Elt& elt, Node& leaf);
@@ -14,4 +16,5 @@ void setCircleAndLink(Elt& elt, Node& leaf);
 */
 void setCirclesAndLinks(Elt *elts, vector<Node>& leaf);
 
+}
 #endif

@@ -12,6 +12,8 @@
 #include "intersect.hpp"
 #include "intersection_ym.hpp"
 
+namespace sphereRemap {
+
 using namespace std;
 
 /** returns index of edge of a that is shared with b,
@@ -171,4 +173,6 @@ cerr << "DID ARRIVE " << base << xc2[0] << xc2[1] << endl;
 	delete [] xc2;
 	delete [] d;
 	delete [] d2;
+}
+
 }

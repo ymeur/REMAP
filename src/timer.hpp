@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 
+namespace sphereRemap {
+
   using namespace std;
   
   
@@ -30,5 +32,5 @@
 
 
 
-
+}
 #endif

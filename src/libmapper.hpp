@@ -1,3 +1,4 @@
+
 /* Call remap_get_num_weights to get the length of the weigth arrays, then allocate the arrays and hand to remap_get_weights. */
 
 /* Bounds are in degree, the pole is in cartitian coordinates on a unit sphere

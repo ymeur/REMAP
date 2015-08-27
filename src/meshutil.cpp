@@ -2,6 +2,8 @@
 #include "elt.hpp"
 #include "polyg.hpp"
 
+namespace sphereRemap {
+
 using namespace std;
 
 void cptEltGeom(Elt& elt, const Coord &pole)
@@ -91,4 +93,6 @@ void computeGradients(Elt **elts, int N)
 		elts[j]->grad = gradient(*(elts[j]), neighbours);
 		elts[j]->val = 0;
 	}
+}
+
 }

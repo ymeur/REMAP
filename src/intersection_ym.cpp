@@ -11,6 +11,8 @@
 #define epsilon 1e-3  // epsilon distance ratio over side lenght for approximate small circle by great circle
 #define fusion_vertex 1e-15 
 
+namespace sphereRemap {
+
 using namespace std;
 using namespace ClipperLib ;
 
@@ -203,3 +205,4 @@ void createGreatCirclePolygon(const Elt& element, const Coord& pole, vector<Coor
   }
 }
 
+}

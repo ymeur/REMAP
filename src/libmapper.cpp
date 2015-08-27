@@ -14,6 +14,7 @@
 #include "mapper.hpp"
 #include "cputime.hpp" // cputime
 
+using namespace sphereRemap ;
 
 /* mapper is a ponter to a global class instance whoes members are allocated in the first step (finding the sizes of the weight arrays) 
    and deallocated during the second step (computing the weights) */

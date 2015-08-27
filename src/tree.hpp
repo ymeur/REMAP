@@ -6,6 +6,8 @@
 #include "elt.hpp"
 #include "node.hpp"
 
+namespace sphereRemap {
+
 using namespace std;
 
 class CBasicTree
@@ -57,5 +59,5 @@ public:
 	void insertNodes(vector<Node>& nodes);
 };
 
-
+}
 #endif

@@ -1,5 +1,7 @@
 #include "elt.hpp"
 
+namespace sphereRemap {
+
 
 Coord barycentre(const Coord *x, int n);
 
@@ -20,3 +22,5 @@ void unpackPolygon(Elt& e, const char *buffer, int& pos);
 void packIntersection(const Elt& e, char *buffer, int& pos);
 void unpackIntersection(Elt *e, const char *buffer);
 int packIntersectionSize(const Elt& e);
+
+}

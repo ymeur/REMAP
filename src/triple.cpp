@@ -1,5 +1,7 @@
 #include "triple.hpp"
 
+namespace sphereRemap {
+
 extern const Coord ORIGIN(0.0, 0.0, 0.0);
 
 std::ostream& operator<<(std::ostream& os, const Coord& c) {
@@ -120,3 +122,4 @@ double angle(const Coord &a, const Coord &b, const Coord &pole)
 	return scalarprod(crossprod(a, b), pole);
 }
 
+}

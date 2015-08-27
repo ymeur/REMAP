@@ -7,6 +7,8 @@
 
 #include "polyg.hpp"
 
+namespace sphereRemap {
+
 using namespace std;
 
 /* given `N` `vertex`es, `N` `edge`s and `N` `d`s (d for small circles)
@@ -318,3 +320,4 @@ void unpackIntersection(Elt* e, const char* buffer)
 	}
 }
 
+}

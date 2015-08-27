@@ -2,6 +2,8 @@
 #define __MAPPER_HPP__
 #include "parallel_tree.hpp"
 
+namespace sphereRemap {
+
 enum verbosity
 {
        SILENT = 0,
@@ -53,4 +55,5 @@ private:
        CParallelTree sstree;
 };
 
+}
 #endif

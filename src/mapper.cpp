@@ -12,6 +12,8 @@
 
 #include "mapper.hpp"
 
+namespace sphereRemap {
+
 /* A subdivition of an array into N sub-arays
    can be represented by the length of the N arrays
    or by the offsets when each of the N arrays starts.
@@ -800,4 +802,6 @@ Mapper::~Mapper()
 	delete [] srcRank;
 	delete [] dstAddress;
 	if (neighbourElements) delete [] neighbourElements;
+}
+
 }

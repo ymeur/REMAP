@@ -1,5 +1,7 @@
 #include "grid.hpp"
 
+namespace sphereRemap {
+
 Coord readPole(std::istream &is)
 {
 	double lon, lat;
@@ -9,3 +11,5 @@ Coord readPole(std::istream &is)
 
 CGrid srcGrid;
 CGrid tgtGrid;
+
+}

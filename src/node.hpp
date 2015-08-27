@@ -10,6 +10,8 @@
 
 #include "triple.hpp"
 
+namespace sphereRemap {
+
 struct Circle
 {
 	Coord centre;
@@ -202,5 +204,5 @@ NodePtr reinsert(NodePtr);
 NodePtr insert(NodePtr, NodePtr);
 void slim2(NodePtr thIs, int level);
 
-
+}
 #endif

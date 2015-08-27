@@ -12,6 +12,9 @@
 
 #include "node.hpp"
 
+namespace sphereRemap {
+
+
 #define UPDATE_EVERY 1
 
 using namespace std;
@@ -676,4 +679,6 @@ void Node::free_descendants()
 		if (child[i]->level) // do not attempt to delete leafs, they are delete through leafs vector
 			delete child[i];
 	}
+}
+
 }

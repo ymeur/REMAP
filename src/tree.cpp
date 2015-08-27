@@ -12,6 +12,8 @@
 #include "timer.hpp"
 #include "mpi_routing.hpp"
 
+namespace sphereRemap {
+
 static const int MAX_LEVEL_SIZE = 100;
 
 double cputime();
@@ -230,5 +232,7 @@ void CSampleTree::insertNodes(vector<Node>& nodes)
  		}
 	}
 	cout << "SampleTree build : nb Node inserted : " << i << endl;
+
+}
 
 }

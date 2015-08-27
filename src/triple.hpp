@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 
+namespace sphereRemap {
+
 #define EPS 1e-15
 
 /* coordinate on sphere */
@@ -119,5 +121,7 @@ void rotsg(const Coord &a, Coord &b, const Coord &c,
 
 double angle(const Coord &a, const Coord &b, const Coord &pole);
 void print_Coord(Coord &p);
+
+}
 
 #endif

@@ -5,6 +5,8 @@
 #include "timer.hpp"
 #include <iostream>
 
+namespace sphereRemap {
+
 const int verbose = 0;
 
 CMPIRouting::CMPIRouting(MPI_Comm comm) : communicator(comm)
@@ -607,4 +609,4 @@ template void alltoalls_unknown(const std::vector<std::vector<NES> >& send, std:
 template void alltoalls_known(const std::vector<std::vector<int> >& send, std::vector<std::vector<int> >& recv,
                               const std::vector<int>& ranks, MPI_Comm communicator);
 
-
+}

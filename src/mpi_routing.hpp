@@ -5,6 +5,8 @@
 #include <vector>
 #include "mpi_cascade.hpp"
 
+namespace sphereRemap {
+
 class CMPIRouting
 {
 
@@ -46,4 +48,5 @@ void alltoalls_known(const std::vector<std::vector<T> >& send, std::vector<std::
 template <typename T>
 void alltoalls_unknown(const std::vector<std::vector<T> >& send, std::vector<std::vector<T> >& recv,
                        const std::vector<int>& ranks, MPI_Comm communicator);
+}
 #endif

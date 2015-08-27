@@ -6,6 +6,8 @@
 #include <cmath> // pow
 #include <vector> // randomizeArray
 
+namespace sphereRemap {
+
 // y = b^x
 // always round down to integer
 
@@ -52,4 +54,5 @@ static void randomizeArray(std::vector<int>& array)
 	}
 }
 
+}
 #endif

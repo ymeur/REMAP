@@ -7,6 +7,8 @@
 
 #define NOT_FOUND -1
 
+namespace sphereRemap {
+
 using namespace std;
 
 Coord barycentre(const Coord *x, int n);
@@ -139,5 +141,6 @@ static double normals(Elt &elt, const Coord &pole)
 	return nmin;
 }
 
+}
 
 #endif 

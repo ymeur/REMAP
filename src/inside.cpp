@@ -7,6 +7,8 @@
 
 #include "inside.hpp"
 
+namespace sphereRemap {
+
 static const double SNAP = 1e-11;
 
 using namespace std;
@@ -367,3 +369,4 @@ int assemble(list<Sgm>& isedge, Coord *c, double *d, Coord *xc)
 	return nc;
 }
 
+}

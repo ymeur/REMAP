@@ -5,6 +5,8 @@
 
 #include "node.hpp"
 
+using namespace sphereRemap ;
+
 int ncread(double *lon, double *lat, int nElt, const char* filename)
 {
 	int ncid, blonid, blatid, valid, neltid;

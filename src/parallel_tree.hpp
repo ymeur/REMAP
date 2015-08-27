@@ -5,6 +5,8 @@
 //#include "sample_tree.hpp"
 #include "mpi_cascade.hpp"
 
+namespace sphereRemap {
+
 class CParallelTree
 {
 public:
@@ -34,4 +36,5 @@ private:
 
 void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascadeLevel& comm);
 
+}
 #endif

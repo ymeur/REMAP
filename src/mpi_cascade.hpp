@@ -6,6 +6,8 @@
 #include <cassert>
 #include "misc.hpp"
 
+namespace sphereRemap {
+
 class CCascadeLevel
 {
 public:
@@ -37,4 +39,6 @@ public:
 	int num_levels;
 	std::vector<CCascadeLevel> level;
 };
+
+}
 #endif
