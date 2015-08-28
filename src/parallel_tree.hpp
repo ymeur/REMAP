@@ -4,13 +4,14 @@
 #include "tree.hpp" // for local tree and routing tree
 //#include "sample_tree.hpp"
 #include "mpi_cascade.hpp"
+#include "mpi.h"
 
 namespace sphereRemap {
 
 class CParallelTree
 {
 public:
-	CParallelTree();
+	CParallelTree(MPI_Comm comm);
 	~CParallelTree();
 
 	void build(vector<Node>& node, vector<Node>& node2);
@@ -32,6 +33,8 @@ private:
 	//CSampleTree sampleTree;
 	vector<CSampleTree> treeCascade; // first for sample tree, then for routing tree
 	CMPICascade cascade;
+  MPI_Comm communicator ;
+  
 };
 
 void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascadeLevel& comm);

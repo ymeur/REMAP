@@ -34,7 +34,7 @@ class CMPICascade
 {
 public:
 	// 
-	CMPICascade(int nodes_per_level, MPI_Comm comm = MPI_COMM_WORLD);
+	CMPICascade(int nodes_per_level, MPI_Comm comm);
 
 	int num_levels;
 	std::vector<CCascadeLevel> level;

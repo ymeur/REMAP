@@ -1,6 +1,7 @@
 #ifndef  __MAPPER_HPP__
 #define __MAPPER_HPP__
 #include "parallel_tree.hpp"
+#include "mpi.h"
 
 namespace sphereRemap {
 
@@ -16,8 +17,9 @@ void cptOffsetsFromLengths(const int *lengths, int *offsets, int sz);
 class Mapper
 {
 public:
-       Mapper(int verbose = 2) : verbose(verbose), neighbourElements(NULL) {}
+       Mapper(MPI_Comm comm=MPI_COMM_WORLD) : communicator(comm), verbose(SILENT), neighbourElements(NULL), sstree(comm) {}
        ~Mapper();
+       void setVerbosity(verbosity v) {verbose=v ;}
        
        double buildSSTree(vector<Node>& srcMsh, vector<Node>& trgMsh)
        {
@@ -53,6 +55,7 @@ private:
        Elt* neighbourElements;
 
        CParallelTree sstree;
+       MPI_Comm communicator ;
 };
 
 }

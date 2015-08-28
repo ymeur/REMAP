@@ -113,7 +113,7 @@ static void transferRoutedIntersections(CMPIRouting& MPIRoute, const vector<Node
 //cout << MPIRoute.mpiRank << " ROUTE " << nRecv << ": " << nodeSend.size() << " " << nodeRecv.size() << "    ";
 }
 
-CParallelTree::CParallelTree() : cascade(MIN_NODE_SZ*MIN_NODE_SZ)
+CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MIN_NODE_SZ*MIN_NODE_SZ, comm)
 {
 	treeCascade.reserve(cascade.num_levels);
 	for (int lev = 0; lev < cascade.num_levels; lev++)
@@ -211,12 +211,18 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 
 	/* End gracefully if sample tree could not be constructed with desired number of nodes on assignLevel */
 	int allok, ok = (tree.levelSize[assignLevel] == comm.group_size);
-	if (!ok) cerr << comm.rank << ": PROBLEM: (node assign)" << tree.levelSize[assignLevel] << " != " << comm.group_size << " (keepNodes)" << endl;
-	MPI_Allreduce(&ok, &allok, 1, MPI_INT, MPI_PROD, MPI_COMM_WORLD);
+	if (!ok)
+  {
+    cerr << comm.rank << ": PROBLEM: (node assign)" << tree.levelSize[assignLevel] << " != " << comm.group_size << " (keepNodes)" << endl;
+/*
+	MPI_Allreduce(&ok, &allok, 1, MPI_INT, MPI_PROD, communicator);
 	if (!allok) {
 		MPI_Finalize();
 		exit(1);
 	}
+*/
+    MPI_Abort(MPI_COMM_WORLD,-1) ;
+  }
   cout<<"*******************************************"<<endl ;
   cout<<"******* Sample Tree output        *********"<<endl ;
   cout<<"*******************************************"<<endl ;
@@ -231,8 +237,8 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 
 void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& route)
 {
-	CMPIRouting MPIRoute(MPI_COMM_WORLD);
-	MPI_Barrier(MPI_COMM_WORLD);
+	CMPIRouting MPIRoute(communicator);
+	MPI_Barrier(communicator);
 	CTimer::get("buildLocalTree(initRoute)").resume();
 	MPIRoute.init(route);
 	CTimer::get("buildLocalTree(initRoute)").suspend();
@@ -257,7 +263,7 @@ void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& 
 	CTimer::get("buildLocalTree(local)").resume();
 
 	int mpiRank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
+	MPI_Comm_rank(communicator, &mpiRank);
 	localTree.leafs.reserve(nbLocalElements);
 	for (int i = 0; i < nbLocalElements; i++)
 	{

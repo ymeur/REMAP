@@ -29,8 +29,8 @@ vector<double> Mapper::computeWeights(vector<Elt>& trgElts, vector<Elt>& srcElts
 {
 	vector<double> timings;
 	int mpiSize, mpiRank;
-	MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
+	MPI_Comm_size(communicator, &mpiSize);
+	MPI_Comm_rank(communicator, &mpiRank);
 
 	if (mpiRank == 0 && verbose) cout << "Computing intersections ..." << endl;
 	double tic = cputime();
@@ -77,8 +77,8 @@ vector<double> Mapper::computeWeights(vector<Elt>& trgElts, vector<Elt>& srcElts
 int Mapper::remap(Elt *elements, int nbElements, int order)
 {
 	int mpiSize, mpiRank;
-	MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
+	MPI_Comm_size(communicator, &mpiSize);
+	MPI_Comm_rank(communicator, &mpiRank);
 
 	/* create list of intersections (super mesh elements) for each rank */
 	multimap<int, Polyg *> *elementList = new multimap<int, Polyg *>[mpiSize];
@@ -135,7 +135,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 
 	/* communicate sizes of source elements to be sent (index lists and later values and gradients) */
 	int *nbRecvElement = new int[mpiSize];
-	MPI_Alltoall(nbSendElement, 1, MPI_INT, nbRecvElement, 1, MPI_INT, MPI_COMM_WORLD);
+	MPI_Alltoall(nbSendElement, 1, MPI_INT, nbRecvElement, 1, MPI_INT, communicator);
 
 	/* communicate indices of source elements on other ranks whoes value and gradient we need (since intersection) */
 	int nbSendRequest = 0;
@@ -150,7 +150,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 	{
 		if (nbSendElement[rank] > 0)
 		{
-			MPI_Issend(sendElement[rank], nbSendElement[rank], MPI_INT, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+			MPI_Issend(sendElement[rank], nbSendElement[rank], MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 		}
 
@@ -167,7 +167,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 			{
 				sendNeighIds[rank] = new GloId[nbRecvElement[rank]];
 			}
-			MPI_Irecv(recvElement[rank], nbRecvElement[rank], MPI_INT, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+			MPI_Irecv(recvElement[rank], nbRecvElement[rank], MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
 		}
 	}
@@ -201,37 +201,37 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 				else
 					sendNeighIds[rank][j] = sstree.localElements[recvElement[rank][j]].src_id;
 			}
-			MPI_Issend(sendValue[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+			MPI_Issend(sendValue[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 			if (order == 2)
 			{
 				MPI_Issend(sendGrad[rank], 3*nbRecvElement[rank]*(NMAX+1),
-								MPI_DOUBLE, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+								MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
 				nbSendRequest++;
-				MPI_Issend(sendNeighIds[rank], 2*nbRecvElement[rank]*(NMAX+1), MPI_INT, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+				MPI_Issend(sendNeighIds[rank], 2*nbRecvElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
 				nbSendRequest++;
 			}
 			else 
 			{
-				MPI_Issend(sendNeighIds[rank], 2*nbRecvElement[rank], MPI_INT, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+				MPI_Issend(sendNeighIds[rank], 2*nbRecvElement[rank], MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
 				nbSendRequest++;
 			}
 		}
 		if (nbSendElement[rank] > 0)
 		{
-			MPI_Irecv(recvValue[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+			MPI_Irecv(recvValue[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
 			if (order == 2)
 			{
 				MPI_Irecv(recvGrad[rank], 3*nbSendElement[rank]*(NMAX+1), 
-						MPI_DOUBLE, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+						MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 				nbRecvRequest++;
-				MPI_Irecv(recvNeighIds[rank], 2*nbSendElement[rank]*(NMAX+1), MPI_INT, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+				MPI_Irecv(recvNeighIds[rank], 2*nbSendElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 				nbRecvRequest++;
 			}
 			else
 			{
-				MPI_Irecv(recvNeighIds[rank], 2*nbSendElement[rank], MPI_INT, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+				MPI_Irecv(recvNeighIds[rank], 2*nbSendElement[rank], MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 				nbRecvRequest++;
 			}
 		}
@@ -347,8 +347,8 @@ void Mapper::computeGrads()
 void Mapper::buildMeshTopology() 
 {
 	int mpiSize, mpiRank;
-	MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
+	MPI_Comm_size(communicator, &mpiSize);
+	MPI_Comm_rank(communicator, &mpiRank);
 
 	vector<Node> *routingList = new vector<Node>[mpiSize];
 	vector<vector<int> > routes(sstree.localTree.leafs.size());
@@ -361,7 +361,7 @@ void Mapper::buildMeshTopology()
 	routingList[mpiRank].clear();
 	  
 
-	CMPIRouting mpiRoute(MPI_COMM_WORLD);
+	CMPIRouting mpiRoute(communicator);
 	mpiRoute.init(routes);
 	int nRecv = mpiRoute.getTotalSourceElement();
 	cout << mpiRank << " NRECV " << nRecv << "(" << routes.size() << ")"<< endl;
@@ -382,8 +382,8 @@ void Mapper::buildMeshTopology()
 		}
 	}
 
-	MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, MPI_COMM_WORLD);
-	MPI_Alltoall(sendMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, MPI_COMM_WORLD);
+	MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, communicator);
+	MPI_Alltoall(sendMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
 
 	char **sendBuffer = new char*[mpiSize];
 	char **recvBuffer = new char*[mpiSize];
@@ -417,12 +417,12 @@ void Mapper::buildMeshTopology()
 	{
 		if (nbSendNode[rank] > 0)
 		{
-			MPI_Issend(sendBuffer[rank], sendMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+			MPI_Issend(sendBuffer[rank], sendMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 		}
 		if (nbRecvNode[rank] > 0)
 		{
-			MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+			MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
 		}
 	}
@@ -475,9 +475,9 @@ void Mapper::buildMeshTopology()
 	delete [] recvBuffer;
 
 
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, MPI_COMM_WORLD);
-	MPI_Alltoall(sendMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, MPI_COMM_WORLD);
+	MPI_Barrier(communicator);
+	MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, communicator);
+	MPI_Alltoall(sendMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
 
 	for (int rank = 0; rank < mpiSize; rank++)
 		if (nbRecvNode[rank] > 0) recvBuffer2[rank] = new char[recvMessageSize[rank]];
@@ -489,12 +489,12 @@ void Mapper::buildMeshTopology()
 	{
 		if (nbSendNode[rank] > 0)
 		{
-			MPI_Issend(sendBuffer2[rank], sendMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+			MPI_Issend(sendBuffer2[rank], sendMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 		}
 		if (nbRecvNode[rank] > 0)
 		{
-			MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+			MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
 		}
 	}
@@ -583,10 +583,10 @@ void Mapper::buildMeshTopology()
 void Mapper::computeIntersection(Elt *elements, int nbElements)
 {
 	int mpiSize, mpiRank;
-	MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
-	MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
+	MPI_Comm_size(communicator, &mpiSize);
+	MPI_Comm_rank(communicator, &mpiRank);
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(communicator);
 
 	vector<Node> *routingList = new vector<Node>[mpiSize];
 
@@ -611,7 +611,7 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 			cout << routingList[rank].size() << "   ";
 		cout << endl;
 	}
-	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(communicator);
 
 	int *nbSendNode = new int[mpiSize];
 	int *nbRecvNode = new int[mpiSize];
@@ -629,8 +629,8 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 		}
 	}
 
-	MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, MPI_COMM_WORLD);
-	MPI_Alltoall(sentMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, MPI_COMM_WORLD);
+	MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, communicator);
+	MPI_Alltoall(sentMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
 
 	int total = 0;
 
@@ -671,12 +671,12 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 	{
 		if (nbSendNode[rank] > 0)
 		{
-			MPI_Issend(sendBuffer[rank], sentMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+			MPI_Issend(sendBuffer[rank], sentMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 		}
 		if (nbRecvNode[rank] > 0)
 		{
-			MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+			MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
 		}
 	}
@@ -741,7 +741,7 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 	}
 
 	if (verbose >= 2) cout << "Rank " << mpiRank << "  Compute (internal) intersection " << cputime() - tic << " s" << endl;
-	MPI_Alltoall(sentMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, MPI_COMM_WORLD);
+	MPI_Alltoall(sentMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
 
 	for (int rank = 0; rank < mpiSize; rank++)
 		if (recvMessageSize[rank] > 0)
@@ -754,12 +754,12 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 	{
 		if (sentMessageSize[rank] > 0)
 		{
-			MPI_Issend(sendBuffer2[rank], sentMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &sendRequest[nbSendRequest]);
+			MPI_Issend(sendBuffer2[rank], sentMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 		}
 		if (recvMessageSize[rank] > 0)
 		{
-			MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, MPI_COMM_WORLD, &recvRequest[nbRecvRequest]);
+			MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
 		}
 	}

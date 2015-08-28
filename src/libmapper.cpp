@@ -71,7 +71,8 @@ extern "C" void remap_get_num_weights(const double* src_bounds_lon, const double
 		cptEltGeom(dst_elt[i], Coord(dst_pole[0], dst_pole[1], dst_pole[2]));
 	}
 	double tic = cputime();
-	mapper = new Mapper(PROGRESS);
+	mapper = new Mapper(MPI_COMM_WORLD);
+  mapper->setVerbosity(PROGRESS) ;
 	mapper->buildSSTree(src_msh, dst_msh);
 	double tac = cputime();
 	vector<double> timings = mapper->computeWeights(dst_elt, src_elt, order);
