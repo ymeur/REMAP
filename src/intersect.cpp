@@ -140,7 +140,9 @@ cerr << "DID ARRIVE " << base << xc2[0] << xc2[1] << endl;
 		are2 = airbar(nc2, xc2, c2, d2, pole, gc2);
 	}
 
-	if (nc > 1)
+//  double ym_area=intersect_ym(a,b) ;
+  
+  if (nc > 1)
 	{
 		/* create one super mesh polygon that src and dest point to */
 		Polyg *is = new Polyg;
@@ -151,7 +153,13 @@ cerr << "DID ARRIVE " << base << xc2[0] << xc2[1] << endl;
 		is->n = nc;
 		(a->is).push_back(is);
 		(b->is).push_back(is);
-//		double ym_area=intersect_ym(a,b) ;
+/*
+ 	  if (	2*fabs(are-ym_area)/(are+ym_area) > 1.1 && ym_area>1e-8)
+    {
+      cout<<"Big area difference : "<<are<<"  "<<ym_area<<endl ;
+      intersect_ym(a,b) ;
+    }
+*/
 //		cout<<"intersection : "<<are<<" "<< ym_area<<"  diff : "<<fabs(are-ym_area)<<"  ratio : "<<fabs(are-ym_area)/(0.5*(are+ym_area))<<endl ;
 	}
 	if (nc2 > 1)
@@ -164,9 +172,24 @@ cerr << "DID ARRIVE " << base << xc2[0] << xc2[1] << endl;
 		is->n = nc2;
 		(a->is).push_back(is);
 		(b->is).push_back(is);
-//		double ym_area=intersect_ym(a,b) ;
+/*
+    if (	2*fabs(are-ym_area)/(are+ym_area) > 1.1 && ym_area>1e-8 )
+    {
+      cout<<"Big area difference : "<<are<<"  "<<ym_area<<endl ;
+      intersect_ym(a,b) ;
+    }
+*/
 //		cout<<"intersection : "<<are2<<" "<< ym_area<<"  diff : "<<fabs(are-ym_area)<<"  ratio : "<<fabs(are-ym_area)/(0.5*(are+ym_area))<<endl ;
 	}
+/*
+  if (nc<=1 && nc2<=1)
+  {
+    if (ym_area>1e-12)
+    {
+      cout<<"Big area difference : "<<0<<"  "<<ym_area<<endl ;
+    }
+  }
+*/
 	delete [] c;
 	delete [] c2;
 	delete [] xc;

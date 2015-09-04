@@ -9,14 +9,14 @@
 #include <limits>
 
 #define epsilon 1e-3  // epsilon distance ratio over side lenght for approximate small circle by great circle
-#define fusion_vertex 1e-15 
+#define fusion_vertex 1e-13 
 
 namespace sphereRemap {
 
 using namespace std;
 using namespace ClipperLib ;
 
-void intersect_ym(Elt *a, Elt *b)
+double intersect_ym(Elt *a, Elt *b)
 {
  
 // transform small circle into piece of great circle if necessary
@@ -87,8 +87,9 @@ void intersect_ym(Elt *a, Elt *b)
   
   double xoffset=(xmin+xmax)*0.5 ;
   double yoffset=(ymin+ymax)*0.5 ;
-  double xscale= 0.5*hiRange/(xmax-xoffset) ; 
-  double yscale= 0.5*hiRange/(ymax-yoffset) ;
+  double xscale= 1e-4*0.5*hiRange/(xmax-xoffset) ; 
+  double yscale= 1e-4*0.5*hiRange/(ymax-yoffset) ;
+// Problem with numerical precision if using larger scaling factor
 
 // 2) Compute intersection with clipper
 //    clipper use only long integer value for vertex => offset and rescale
@@ -104,17 +105,21 @@ void intersect_ym(Elt *a, Elt *b)
   Clipper clip ;
   clip.AddPaths(src, ptSubject, true);
   clip.AddPaths(dst, ptClip, true);
-  clip.Execute(ctIntersection, intersection, pftNonZero, pftNonZero);
-       
-
+  clip.Execute(ctIntersection, intersection);
+      
+  double area=0 ;
   if (intersection.size()==1)
   {
 // go back into real coordinate on the sphere
-    Coord* intersectPolygon=new Coord[intersection[0].size()] ; 
+    Coord* intersectPolygon=new Coord[intersection[0].size()] ;
+//    Coord* intersect2D=new Coord[intersection[0].size()] ;
     for(int n=0; n < intersection[0].size(); n++) 
     {
       double x=intersection[0][n].X/xscale+xoffset ;
       double y=intersection[0][n].Y/yscale+yoffset ;
+//      intersect2D[n].x=x  ;
+//      intersect2D[n].y=y  ;
+//      intersect2D[n].z=1. ;
       
       intersectPolygon[n]=Ox*x+Oy*y+Oz ;
       intersectPolygon[n]=intersectPolygon[n]*(1./norm(intersectPolygon[n])) ;
@@ -137,19 +142,26 @@ void intersect_ym(Elt *a, Elt *b)
 //     assign intersection to source and destination polygons
        Polyg *is = new Polyg;
        is->x = exact_barycentre(intersectPolygon,nv);
-       is->area = polygonarea(intersectPolygon,nv) ; ;
+       is->area = polygonarea(intersectPolygon,nv) ;
+//        if (is->area < 1e-12) cout<<"Small intersection : "<<is->area<<endl ;
        is->id = b->id; /* intersection holds id of corresponding source element (see Elt class definition for details about id) */
        is->src_id = b->src_id;
        is->n = nv;
        (a->is).push_back(is);
        (b->is).push_back(is);
-       
-    }
-    delete[] intersectPolygon ;
+       area=is->area ;
+     }
+     delete[] intersectPolygon ;
+  }
+  else if (intersection.size()>1)
+  {
+
+    cout<<"Intersection Size > 1 : "<< intersection.size()<<endl ;
   }
 
   delete[] a_gno ;
   delete[] b_gno ;
+  return area ;
 }    
 
 void createGreatCirclePolygon(const Elt& element, const Coord& pole, vector<Coord>& coordinates)

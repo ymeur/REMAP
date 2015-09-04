@@ -6,7 +6,7 @@
 
 namespace sphereRemap {
 
-void intersect_ym(Elt *a, Elt *b) ;
+double intersect_ym(Elt *a, Elt *b) ;
 void createGreatCirclePolygon(const Elt& element, const Coord& pole, vector<Coord>& coordinates) ;
 
 }
