@@ -20,22 +20,33 @@ public:
        Mapper(MPI_Comm comm=MPI_COMM_WORLD) : communicator(comm), verbose(SILENT), neighbourElements(NULL), sstree(comm) {}
        ~Mapper();
        void setVerbosity(verbosity v) {verbose=v ;}
-       
+ 
+       void setSourceMesh(const double* boundsLon, const double* boundsLat, int nVertex, int nbCells, const double* pole, const long int* globalId=NULL) ;
+       void setTargetMesh(const double* boundsLon, const double* boundsLat, int nVertex, int nbCells, const double* pole, const long int* globalId=NULL) ;
+       void setSourceValue(const double* val) ;
+       void getTargetValue(double* val) ;
+      
        double buildSSTree(vector<Node>& srcMsh, vector<Node>& trgMsh)
        {
-               sstree.build(srcMsh, trgMsh);
+         sstree.build(srcMsh, trgMsh);
        }
 
        /** @param trgElts are the elements of the unstructured target grid
            Returns the timings for substeps: */
-       vector<double> computeWeights(vector<Elt>& trgElts, vector<Elt>& srcElts, int interpOrder);
-
+       vector<double> computeWeights(int interpOrder);
+       int getNbWeights(void) { return nWeights ; }
+/*
+       void getWeigths(double* weights, double* sourceInd, double* targetInd) ;
+       void getWeights(vector<double>& weights, vector<double>& sourceInd, vector<double>& targetInd) ;
+*/       
        /* where weights are returned after call to `computeWeights` */
        double *remapMatrix;
        int *srcAddress;
        int *srcRank;
        int *dstAddress;
        int nWeights;
+       long int* sourceWeightId ;
+       long int* targetWeightId ;
 
 private:
        /** @return number of weights (local to cpu) */
@@ -56,6 +67,13 @@ private:
 
        CParallelTree sstree;
        MPI_Comm communicator ;
+       std::vector<Elt>  sourceElements ;
+       std::vector<Node> sourceMesh ;
+       std::vector<Elt>  targetElements ;
+       std::vector<Node> targetMesh ;
+       std::vector<long> sourceGlobalId ;
+       std::vector<long> targetGlobalId ;
+      
 };
 
 }

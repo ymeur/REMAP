@@ -265,7 +265,7 @@ void unpackPolygon(Elt& e, const char *buffer, int& pos)
 
 int packIntersectionSize(const Elt& elt) 
 {
-	return elt.is.size() * (4*sizeof(int) + 4*sizeof(double));
+	return elt.is.size() * (2*sizeof(int)+ sizeof(GloId) + 4*sizeof(double));
 }
 
 void packIntersection(const Elt& e, char* buffer,int& pos) 

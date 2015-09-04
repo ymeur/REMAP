@@ -41,6 +41,12 @@ extern "C" void remap_get_num_weights(const double* src_bounds_lon, const double
 	assert(n_cell_dst >= 4);
 	assert(1 <= order && order <= 2);
 
+  mapper = new Mapper(MPI_COMM_WORLD);
+  mapper->setVerbosity(PROGRESS) ;
+  mapper->setSourceMesh(src_bounds_lon, src_bounds_lat, n_vert_per_cell_src, n_cell_src, src_pole ) ;
+  mapper->setTargetMesh(dst_bounds_lon, dst_bounds_lat, n_vert_per_cell_dst, n_cell_dst, dst_pole ) ;
+
+/*
 	srcGrid.pole = Coord(src_pole[0], src_pole[1], src_pole[2]);
 	tgtGrid.pole = Coord(dst_pole[0], dst_pole[1], dst_pole[2]);
 
@@ -76,7 +82,10 @@ extern "C" void remap_get_num_weights(const double* src_bounds_lon, const double
 	mapper->buildSSTree(src_msh, dst_msh);
 	double tac = cputime();
 	vector<double> timings = mapper->computeWeights(dst_elt, src_elt, order);
+*/
 
+  vector<double> timings = mapper->computeWeights(order);
+/*
 #ifdef WRITE_TIMING
 	int nGloWeights, gloSrcSize, gloDstSize;
 	int locSrcSize = src_elt.size();
@@ -94,11 +103,10 @@ extern "C" void remap_get_num_weights(const double* src_bounds_lon, const double
 		timeout.close();
 	}
 #endif
+*/
+
 	*n_weights = mapper->nWeights;
-	for (int i = 0; i < dst_elt.size(); i++)
-	{
-		dst_elt[i].delete_intersections();
-	}
+
 }
 
 extern "C" void remap_get_barycentres_and_areas(const double* bounds_lon, const double* bounds_lat, int n_vert_per_cell, int n_cell,

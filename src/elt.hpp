@@ -33,6 +33,7 @@ struct GloId
 {
 	int rank;
 	int ind; /* local id */
+  long globalId ;
 
 	bool operator<(const GloId& other) const {
 		return (rank == other.rank) ? (ind < other.ind) : (rank < other.rank);

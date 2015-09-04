@@ -25,16 +25,101 @@ void cptOffsetsFromLengths(const int *lengths, int *offsets, int sz)
 		offsets[i] = offsets[i-1] + lengths[i-1];
 }
 
-vector<double> Mapper::computeWeights(vector<Elt>& trgElts, vector<Elt>& srcElts, int interpOrder)
+
+void Mapper::setSourceMesh(const double* boundsLon, const double* boundsLat, int nVertex, int nbCells, const double* pole, const long int* globalId)
+{
+  srcGrid.pole = Coord(pole[0], pole[1], pole[2]);
+
+	int mpiRank, mpiSize;
+	MPI_Comm_rank(communicator, &mpiRank);
+	MPI_Comm_size(communicator, &mpiSize);
+
+	sourceElements.reserve(nbCells);
+	sourceMesh.reserve(nbCells);
+  sourceGlobalId.resize(nbCells) ;  
+
+  if (globalId==NULL)
+  {
+    long int offset ;
+    long int nb=nbCells ;
+    MPI_Scan(&nb,&offset,1,MPI_LONG,MPI_SUM,communicator) ;
+    offset=offset-nb ;
+    for(int i=0;i<nbCells;i++) sourceGlobalId[i]=offset+i ;
+  }
+  else sourceGlobalId.assign(globalId,globalId+nbCells);
+  
+	for (int i = 0; i < nbCells; i++)
+	{
+		int offs = i*nVertex;
+		Elt elt(boundsLon + offs, boundsLat + offs, nVertex);
+		elt.src_id.rank = mpiRank;
+		elt.src_id.ind = i;
+    elt.src_id.globalId = sourceGlobalId[i];
+		sourceElements.push_back(elt);
+		sourceMesh.push_back(Node(elt.x, cptRadius(elt), &sourceElements.back()));
+		cptEltGeom(sourceElements[i], Coord(pole[0], pole[1], pole[2]));
+	}
+    
+}
+
+void Mapper::setTargetMesh(const double* boundsLon, const double* boundsLat, int nVertex, int nbCells, const double* pole, const long int* globalId)
+{
+  tgtGrid.pole = Coord(pole[0], pole[1], pole[2]);
+
+	int mpiRank, mpiSize;
+	MPI_Comm_rank(communicator, &mpiRank);
+	MPI_Comm_size(communicator, &mpiSize);
+
+	targetElements.reserve(nbCells);
+	targetMesh.reserve(nbCells);
+  
+  targetGlobalId.resize(nbCells) ;  
+  if (globalId==NULL)
+  {
+    long int offset ;
+    long int nb=nbCells ;
+    MPI_Scan(&nb,&offset,1,MPI_LONG,MPI_SUM,communicator) ;
+    offset=offset-nb ;
+    for(int i=0;i<nbCells;i++) targetGlobalId[i]=offset+i ;
+  }
+  else targetGlobalId.assign(globalId,globalId+nbCells);
+
+	for (int i = 0; i < nbCells; i++)
+	{
+		int offs = i*nVertex;
+		Elt elt(boundsLon + offs, boundsLat + offs, nVertex);
+		targetElements.push_back(elt);
+		targetMesh.push_back(Node(elt.x, cptRadius(elt), &sourceElements.back()));
+		cptEltGeom(targetElements[i], Coord(pole[0], pole[1], pole[2]));
+	}
+
+
+}
+
+void Mapper::setSourceValue(const double* val)
+{
+  int size=sourceElements.size() ;
+  for(int i=0;i<size;++i) sourceElements[i].val=val[i] ;
+}
+
+void Mapper::getTargetValue(double* val)
+{
+  int size=targetElements.size() ;
+  for(int i=0;i<size;++i) val[i]=targetElements[i].val ;
+}  
+  
+vector<double> Mapper::computeWeights(int interpOrder)
 {
 	vector<double> timings;
 	int mpiSize, mpiRank;
 	MPI_Comm_size(communicator, &mpiSize);
 	MPI_Comm_rank(communicator, &mpiRank);
 
+  this->buildSSTree(sourceMesh, targetMesh);
+
 	if (mpiRank == 0 && verbose) cout << "Computing intersections ..." << endl;
 	double tic = cputime();
-	computeIntersection(&trgElts[0], trgElts.size());
+	computeIntersection(&targetElements[0], targetElements.size());
 	timings.push_back(cputime() - tic);
 
 	tic = cputime();
@@ -49,9 +134,9 @@ vector<double> Mapper::computeWeights(vector<Elt>& trgElts, vector<Elt>& srcElts
 	/* compute number of intersections which for the first order case
            corresponds to the number of edges in the remap matrix */
 	int nIntersections = 0;
-	for (int j = 0; j < trgElts.size(); j++)
+	for (int j = 0; j < targetElements.size(); j++)
 	{
-		Elt &elt = trgElts[j];
+		Elt &elt = targetElements[j];
 		for (list<Polyg*>::iterator it = elt.is.begin(); it != elt.is.end(); it++)
 			nIntersections++;
 	}
@@ -60,11 +145,17 @@ vector<double> Mapper::computeWeights(vector<Elt>& trgElts, vector<Elt>& srcElts
 	srcAddress = new int[nIntersections*NMAX];
 	srcRank = new int[nIntersections*NMAX];
 	dstAddress = new int[nIntersections*NMAX];
+  sourceWeightId =new long[nIntersections*NMAX];
+  targetWeightId =new long[nIntersections*NMAX];
+
 
 	if (mpiRank == 0 && verbose) cout << "Remapping..." << endl;
 	tic = cputime();
-	nWeights = remap(&trgElts[0], trgElts.size(), interpOrder);
+	nWeights = remap(&targetElements[0], targetElements.size(), interpOrder);
 	timings.push_back(cputime() - tic);
+
+  for (int i = 0; i < targetElements.size(); i++) targetElements[i].delete_intersections();
+
 	return timings;
 }
 
@@ -208,12 +299,14 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 				MPI_Issend(sendGrad[rank], 3*nbRecvElement[rank]*(NMAX+1),
 								MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
 				nbSendRequest++;
-				MPI_Issend(sendNeighIds[rank], 2*nbRecvElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+				MPI_Issend(sendNeighIds[rank], 4*nbRecvElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+//ym  --> attention taille GloId 
 				nbSendRequest++;
 			}
 			else 
 			{
-				MPI_Issend(sendNeighIds[rank], 2*nbRecvElement[rank], MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+				MPI_Issend(sendNeighIds[rank], 4*nbRecvElement[rank], MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+//ym  --> attention taille GloId 
 				nbSendRequest++;
 			}
 		}
@@ -226,12 +319,14 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 				MPI_Irecv(recvGrad[rank], 3*nbSendElement[rank]*(NMAX+1), 
 						MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 				nbRecvRequest++;
-				MPI_Irecv(recvNeighIds[rank], 2*nbSendElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+				MPI_Irecv(recvNeighIds[rank], 4*nbSendElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+//ym  --> attention taille GloId 
 				nbRecvRequest++;
 			}
 			else
 			{
-				MPI_Irecv(recvNeighIds[rank], 2*nbSendElement[rank], MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+				MPI_Irecv(recvNeighIds[rank], 4*nbSendElement[rank], MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+//ym  --> attention taille GloId 
 				nbRecvRequest++;
 			}
 		}
@@ -285,6 +380,8 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 			this->srcAddress[i] = it->first.ind;
 			this->srcRank[i] = it->first.rank;
 			this->dstAddress[i] = j;
+      this->sourceWeightId[i]= it->first.globalId ;
+      this->targetWeightId[i]= targetGlobalId[j] ;
 			i++;
 		}
 	}
